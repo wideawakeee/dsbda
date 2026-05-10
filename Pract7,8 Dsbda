@@ -1,0 +1,204 @@
+import nltk 
+import pandas as pd 
+from sklearn.feature_extraction.text import TfidfVectorizer 
+print("Downloading NLTK data (only needed once)...") 
+nltk.download('punkt',           
+nltk.download('punkt_tab',       
+quiet=True) 
+quiet=True) 
+nltk.download('averaged_perceptron_tagger', quiet=True) 
+nltk.download('averaged_perceptron_tagger_eng', quiet=True) 
+nltk.download('stopwords',       
+quiet=True) 
+nltk.download('wordnet',         
+quiet=True) 
+from nltk.tokenize import word_tokenize 
+from nltk import pos_tag 
+from nltk.corpus import stopwords 
+from nltk.stem import PorterStemmer, WordNetLemmatizer 
+DIVIDER = "=" * 60 
+text = "Data analytics is the process of analyzing raw data to find useful information." 
+docs = [ 
+"Data analytics is the process of analyzing raw data to find useful information.", 
+"Machine learning algorithms learn from data and improve over time.", 
+"Python is a popular programming language for data science and analytics.", 
+] 
+print(f"\n{DIVIDER}") 
+print("  STEP 0 — Sample Text") 
+print(DIVIDER) 
+print(f"  Text: {text}") 
+tokens = word_tokenize(text) 
+print(f"\n{DIVIDER}") 
+print("  STEP 1 — Tokenization (splitting text into words)") 
+print(DIVIDER) 
+print(f"  Tokens ({len(tokens)}):\n  {tokens}") 
+pos_tags = pos_tag(tokens) 
+print(f"\n{DIVIDER}") 
+print("  STEP 2 — POS Tagging (Part of Speech)") 
+print("  NN=Noun  VBZ=Verb  JJ=Adjective  IN=Preposition  DT=Determiner") 
+print(DIVIDER) 
+for word, tag in pos_tags: 
+print(f"    {word:15s} → {tag}") 
+stop_words = set(stopwords.words('english')) 
+filtered_tokens = [w for w in tokens if w.lower() not in stop_words and w.isalpha()] 
+print(f"\n{DIVIDER}") 
+print("  STEP 3 — Stop Words Removal") 
+print(f"  Stop words removed (like: is, the, of, to, a ...)") 
+print(DIVIDER) 
+print(f"  Before ({len(tokens)}) tokens: {tokens}") 
+print(f"\n  After  ({len(filtered_tokens)}) tokens: {filtered_tokens}") 
+ps = PorterStemmer() 
+stemmed = [ps.stem(w) for w in filtered_tokens] 
+print(f"\n{DIVIDER}") 
+print("  STEP 4 — Stemming (reduces to root, may not be real word)") 
+print(DIVIDER) 
+for orig, stem in zip(filtered_tokens, stemmed): 
+print(f"    {orig:15s} → {stem}") 
+lm = WordNetLemmatizer() 
+lemmatized = [lm.lemmatize(w.lower()) for w in filtered_tokens] 
+print(f"\n{DIVIDER}") 
+print("  STEP 5 — Lemmatization (reduces to real base word)") 
+print(DIVIDER) 
+for orig, lemma in zip(filtered_tokens, lemmatized): 
+print(f"    {orig:15s} → {lemma}") 
+print(f"\n{DIVIDER}") 
+print("  Comparison: Stemming vs Lemmatization") 
+print(DIVIDER) 
+comp = pd.DataFrame({ 
+'Original':     
+filtered_tokens, 
+'Stemmed':      stemmed, 
+'Lemmatized':   lemmatized, 
+}) 
+print(comp.to_string(index=False)) 
+print(f"\n{DIVIDER}") 
+print("  STEP 6 — TF-IDF Representation") 
+print("  (Shows how important each word is in each document)") 
+print(DIVIDER) 
+print("  Documents used:") 
+for i, d in enumerate(docs): 
+print(f"  Doc{i+1}: {d}") 
+vectorizer = TfidfVectorizer() 
+tfidf_matrix = vectorizer.fit_transform(docs) 
+feature_names = vectorizer.get_feature_names_out() 
+tfidf_df = pd.DataFrame( 
+tfidf_matrix.toarray(), 
+columns=feature_names, 
+index=[f'Doc{i+1}' for i in range(len(docs))] 
+) 
+print(f"\n  TF-IDF Matrix (only top words shown):") 
+# Show top 8 words by total TF-IDF score 
+top_cols = tfidf_df.sum().nlargest(10).index 
+print(tfidf_df[top_cols].round(4)) 
+print(f"\n  Full vocabulary size: {len(feature_names)} words") 
+print(f"  Matrix shape        
+: {tfidf_matrix.shape}") 
+print(f"\n{DIVIDER}") 
+print("  STEP 7 — Manual TF-IDF Calculation Example") 
+print("  Word: 'data'  in Document 1") 
+print(DIVIDER) 
+word = 'data' 
+doc1_words  = docs[0].lower().split() 
+tf = doc1_words.count(word) / len(doc1_words) 
+docs_with_word = sum(1 for d in docs if word in d.lower()) 
+import math 
+idf = math.log(len(docs) / docs_with_word) 
+print(f"  TF  = {doc1_words.count(word)} / {len(doc1_words)} = {tf:.4f}") 
+print(f"  IDF = log({len(docs)} / {docs_with_word}) = {idf:.4f}") 
+print(f"  TF-IDF = TF × IDF = {tf:.4f} × {idf:.4f} = {tf*idf:.4f}") 
+print(f"\n{'='*60}") 
+print("  PRACTICAL 7 COMPLETE") 
+print(f"{'='*60}\n") 
+
+
+
+
+
+
+import seaborn as sns 
+import matplotlib.pyplot as plt 
+import pandas as pd 
+DIVIDER = "=" * 60 
+df = sns.load_dataset('titanic') 
+print(f"\n{DIVIDER}") 
+print("  STEP 1 — Titanic Dataset Loaded (seaborn built-in)") 
+print(f"  Shape: {df.shape}") 
+print(DIVIDER) 
+print(df.head()) 
+print(f"\n{DIVIDER}") 
+print("  STEP 2 — Dataset Info & Missing Values") 
+print(DIVIDER) 
+print(df.isnull().sum()) 
+print(f"\n{DIVIDER}") 
+print("  STEP 3 — Statistical Summary") 
+print(DIVIDER) 
+print(df.describe()) 
+plt.figure(figsize=(6, 4)) 
+sns.countplot(x='survived', data=df, palette='Set2') 
+plt.title("Plot 1: Survival Count (0=No, 1=Yes)") 
+plt.xlabel("Survived") 
+plt.ylabel("Count") 
+plt.tight_layout() 
+plt.savefig("plot1_survival_count.png") 
+plt.close() 
+print(f"\n  [Saved] Plot 1 → plot1_survival_count.png") 
+print("  Shows: How many passengers survived vs did not survive.") 
+plt.figure(figsize=(6, 4)) 
+sns.countplot(x='survived', hue='sex', data=df, palette='Set1') 
+plt.title("Plot 2: Survival by Gender") 
+plt.xlabel("Survived") 
+plt.ylabel("Count") 
+plt.legend(title='Gender') 
+plt.tight_layout() 
+plt.savefig("plot2_survival_by_gender.png") 
+plt.close() 
+print(f"  [Saved] Plot 2 → plot2_survival_by_gender.png") 
+print("  Shows: Female passengers survived much more than males.") 
+plt.figure(figsize=(6, 4)) 
+sns.countplot(x='survived', hue='pclass', data=df, palette='Set3') 
+plt.title("Plot 3: Survival by Passenger Class") 
+plt.xlabel("Survived") 
+plt.ylabel("Count") 
+plt.legend(title='Pclass') 
+plt.tight_layout() 
+plt.savefig("plot3_survival_by_class.png") 
+plt.close() 
+print(f"  [Saved] Plot 3 → plot3_survival_by_class.png") 
+print("  Shows: 1st class passengers had higher survival rate.") 
+plt.figure(figsize=(7, 4)) 
+sns.histplot(df['fare'].dropna(), bins=30, kde=True, color='steelblue') 
+plt.title("Plot 4: Fare Distribution") 
+plt.xlabel("Fare (ticket price)") 
+plt.ylabel("Frequency") 
+plt.tight_layout() 
+plt.savefig("plot4_fare_distribution.png") 
+plt.close() 
+print(f"  [Saved] Plot 4 → plot4_fare_distribution.png") 
+print("  Shows: Most passengers paid low fares; few paid very high.") 
+plt.figure(figsize=(7, 4)) 
+sns.histplot(df['age'].dropna(), bins=20, kde=True, color='coral') 
+plt.title("Plot 5: Age Distribution of Passengers") 
+plt.xlabel("Age") 
+plt.ylabel("Frequency") 
+plt.tight_layout() 
+plt.savefig("plot5_age_distribution.png") 
+plt.close() 
+print(f"  [Saved] Plot 5 → plot5_age_distribution.png") 
+print("  Shows: Most passengers were between 20-40 years old.") 
+print(f"\n{DIVIDER}") 
+print("  OBSERVATIONS") 
+print(DIVIDER) 
+survived     = df['survived'].value_counts() 
+gender_surv  = df.groupby('sex')['survived'].mean() 
+class_surv   = df.groupby('pclass')['survived'].mean() 
+print(f"  Total Survived     : {survived[1]}  |  Not Survived: {survived[0]}") 
+print(f"\n  Survival Rate by Gender:") 
+for g, r in gender_surv.items(): 
+print(f"    {g:8s}: {r*100:.1f}%") 
+print(f"\n  Survival Rate by Class:") 
+for c, r in class_surv.items(): 
+print(f"    Class {c}: {r*100:.1f}%") 
+print(f"\n{'='*60}") 
+print("  PRACTICAL 8 COMPLETE") 
+print("  5 plots saved as PNG in current directory") 
+print(f"{'='*60}\n")
