@@ -1,0 +1,181 @@
+import seaborn as sns 
+import matplotlib.pyplot as plt 
+import pandas as pd 
+DIVIDER = "=" * 60 
+df = sns.load_dataset('titanic') 
+print(f"\n{DIVIDER}") 
+print("  STEP 1 — Dataset Loaded") 
+print(f"  Shape: {df.shape}") 
+print(DIVIDER) 
+print(df[['sex', 'age', 'survived']].head(10)) 
+print(f"\n{DIVIDER}") 
+print("  STEP 2 — Age Column Statistics") 
+print(DIVIDER) 
+print(f"  Count  : {df['age'].count()}") 
+print(f"  Mean   : {df['age'].mean():.2f}") 
+print(f"  Median : {df['age'].median():.2f}") 
+print(f"  Std Dev: {df['age'].std():.2f}") 
+print(f"  Min    : {df['age'].min()}") 
+print(f"  Max    : {df['age'].max()}") 
+q1 = df['age'].quantile(0.25) 
+q3 = df['age'].quantile(0.75) 
+print(f"  Q1 (25th percentile): {q1}") 
+print(f"  Q3 (75th percentile): {q3}") 
+print(f"  IQR                 
+: {q3 - q1}") 
+print(f"\n{DIVIDER}") 
+print("  STEP 3 — Missing Values in Age") 
+print(DIVIDER) 
+print(f"  Missing Age values: {df['age'].isna().sum()}") 
+print("  (seaborn's boxplot automatically skips NaN values)") 
+plt.figure(figsize=(8, 5)) 
+sns.boxplot(x='sex', y='age', hue='survived', data=df, palette='Set2') 
+plt.title("Plot 1: Age Distribution by Gender and Survival") 
+plt.xlabel("Gender") 
+plt.ylabel("Age") 
+plt.legend(title='Survived', labels=['No (0)', 'Yes (1)']) 
+plt.tight_layout() 
+plt.savefig("plot6_boxplot_age_gender_survival.png") 
+plt.close() 
+print(f"\n  [Saved] Plot 1 → plot6_boxplot_age_gender_survival.png") 
+plt.figure(figsize=(7, 5)) 
+sns.boxplot(x='pclass', y='age', data=df, palette='pastel') 
+plt.title("Plot 2: Age Distribution by Passenger Class") 
+plt.xlabel("Passenger Class") 
+plt.ylabel("Age") 
+plt.tight_layout() 
+plt.savefig("plot7_boxplot_age_by_class.png") 
+plt.close() 
+print(f"  [Saved] Plot 2 → plot7_boxplot_age_by_class.png") 
+plt.figure(figsize=(7, 5)) 
+sns.boxplot(x='pclass', y='fare', data=df, palette='coolwarm') 
+plt.title("Plot 3: Fare Distribution by Passenger Class") 
+plt.xlabel("Passenger Class") 
+plt.ylabel("Fare") 
+plt.tight_layout() 
+plt.savefig("plot8_boxplot_fare_by_class.png") 
+plt.close() 
+print(f"  [Saved] Plot 3 → plot8_boxplot_fare_by_class.png") 
+print(f"\n{DIVIDER}") 
+print("  STEP 4 — Age Statistics by Gender & Survival") 
+print(DIVIDER) 
+grouped = df.groupby(['sex', 'survived'])['age'].describe().round(2) 
+print(grouped) 
+print(f"\n{DIVIDER}") 
+print("  OBSERVATIONS (from Box Plots)") 
+print(DIVIDER) 
+print(""" 
+1. GENDER & AGE: 
+     - Male passengers have a wider age range than females. 
+     - Median age for males is slightly higher (~30) than females (~28). 
+ 
+  2. SURVIVAL & GENDER: 
+     - Among survivors, females tend to be slightly younger. 
+     - Non-surviving males have a higher median age. 
+     - This supports the 'women and children first' evacuation pattern. 
+ 
+  3. AGE & CLASS: 
+     - 1st class passengers are generally older (median ~37). 
+     - 3rd class passengers are younger (median ~25). 
+ 
+  4. FARE & CLASS: 
+     - 1st class fares are much higher and widely spread. 
+     - 2nd and 3rd class fares are low and tightly clustered. 
+ 
+  5. OUTLIERS: 
+     - Some passengers aged above 70 appear as outliers. 
+     - Very high fares in 1st class show as outliers. 
+""") 
+ 
+print(f"{'='*60}") 
+print("  PRACTICAL 9 COMPLETE") 
+print("  3 plots saved as PNG in current directory" 
+print(f"{'='*60}\n")
+
+
+
+
+
+
+
+
+
+from collections import defaultdict 
+DIVIDER = "=" * 60 
+input_text = """ 
+hadoop is simple 
+hadoop is powerful 
+map reduce in hadoop 
+data processing with hadoop is fast 
+map reduce is a programming model 
+""" 
+print(f"\n{DIVIDER}") 
+print("  PRACTICAL 11 — WordCount using MapReduce Logic") 
+print(DIVIDER) 
+print("  Input Text:") 
+print(input_text) 
+def mapper(text): 
+"""Tokenizes text and emits (word, 1) pairs.""" 
+intermediate = [] 
+for line in text.strip().split('\n'): 
+for word in line.strip().split(): 
+word = word.lower() 
+intermediate.append((word, 1)) 
+return intermediate 
+mapper_output = mapper(input_text) 
+print(f"{DIVIDER}") 
+print("  MAPPER OUTPUT — (word, 1) pairs emitted") 
+print(DIVIDER) 
+for pair in mapper_output: 
+print(f"    {pair[0]:15s}  →  {pair[1]}") 
+def shuffle_and_sort(mapper_output): 
+"""Groups values by key.""" 
+grouped = defaultdict(list) 
+for key, value in mapper_output: 
+grouped[key].append(value) 
+return dict(sorted(grouped.items())) 
+shuffled = shuffle_and_sort(mapper_output) 
+print(f"\n{DIVIDER}") 
+print("  SHUFFLE & SORT — Values grouped by key (word)") 
+print(DIVIDER) 
+for word, values in shuffled.items(): 
+print(f"    {word:15s}  →  {values}") 
+def reducer(shuffled): 
+"""Sums values for each key.""" 
+result = {} 
+for key, values in shuffled.items(): 
+result[key] = sum(values) 
+return result 
+final_output = reducer(shuffled) 
+print(f"\n{DIVIDER}") 
+print("  REDUCER OUTPUT — Final Word Count") 
+print(DIVIDER) 
+print(f"  {'Word':<20} Count") 
+print(f"  {'-'*30}") 
+for word, count in sorted(final_output.items(), key=lambda x: -x[1]): 
+print(f"  {word:<20} {count}") 
+print(f"\n{DIVIDER}") 
+print("  SUMMARY") 
+print(DIVIDER) 
+print(f"  Total unique words : {len(final_output)}") 
+print(f"  Total word tokens  : {sum(final_output.values())}") 
+print(f"  Most frequent word : '{max(final_output, key=final_output.get)}'") 
+ 
+print(f"\n{DIVIDER}") 
+print("  MapReduce Flow (how Hadoop works)") 
+print(DIVIDER) 
+print(""" 
+  INPUT FILE 
+      ↓ 
+  [MAPPER]  — reads lines, emits (word, 1) for each word 
+      ↓ 
+  [SHUFFLE & SORT]  — groups all (word, [1,1,1,...]) together 
+      ↓ 
+  [REDUCER]  — sums the list → emits (word, total_count) 
+      ↓ 
+  OUTPUT FILE 
+""") 
+ 
+print(f"{'='*60}") 
+print("  PRACTICAL 11 COMPLETE") 
+print(f"{'='*60}\n")
