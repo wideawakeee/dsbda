@@ -1,0 +1,190 @@
+import pandas as pd 
+import numpy as np 
+from sklearn.model_selection import train_test_split 
+from sklearn.linear_model import LogisticRegression 
+from sklearn.metrics import confusion_matrix, classification_report 
+from sklearn.preprocessing import StandardScaler 
+DIVIDER = "=" * 60 
+np.random.seed(42) 
+n = 100 
+age    = np.random.randint(18, 60, n) 
+salary = np.random.randint(15000, 150000, n) 
+# Older + higher salary → more likely to buy 
+purchased = ((age > 35) & (salary > 70000)).astype(int) 
+# Add some noise 
+noise_idx = np.random.choice(n, 10, replace=False) 
+purchased[noise_idx] = 1 - purchased[noise_idx] 
+df = pd.DataFrame({'Age': age, 'EstimatedSalary': salary, 'Purchased': purchased}) 
+print(f"\n{DIVIDER}") 
+print("  STEP 1 — Dataset Loaded") 
+print(f"  Shape: {df.shape}") 
+print(DIVIDER) 
+print(df.head(10).to_string(index=False)) 
+print(f"\n  Purchased distribution:\n{df['Purchased'].value_counts()}") 
+X = df[['Age', 'EstimatedSalary']] 
+y = df['Purchased'] 
+print(f"\n{DIVIDER}") 
+print("  STEP 2 — Features and Target") 
+print(DIVIDER) 
+print(f"  X (features): Age, EstimatedSalary") 
+print(f"  y (target)  : Purchased (0=No, 1=Yes)") 
+X_train, X_test, y_train, y_test = train_test_split( 
+X, y, test_size=0.25, random_state=42 
+) 
+print(f"\n{DIVIDER}") 
+print("  STEP 3 — Train-Test Split (75% train, 25% test)") 
+print(DIVIDER) 
+print(f"  Training samples : {X_train.shape[0]}") 
+print(f"  Testing  samples : {X_test.shape[0]}") 
+scaler  = StandardScaler() 
+X_train = scaler.fit_transform(X_train) 
+X_test  = scaler.transform(X_test) 
+print(f"\n{DIVIDER}") 
+print("  STEP 4 — Feature Scaling done (StandardScaler)") 
+print("  (Makes Age and Salary comparable in scale)") 
+print(DIVIDER) 
+model = LogisticRegression() 
+model.fit(X_train, y_train) 
+print(f"\n{DIVIDER}") 
+print("  STEP 5 — Logistic Regression Model Trained!") 
+print(DIVIDER) 
+print(f"  Coefficients: {model.coef_}") 
+print(f"  Intercept   : {model.intercept_}") 
+y_pred = model.predict(X_test) 
+print(f"\n{DIVIDER}") 
+print("  STEP 6 — Sample Predictions vs Actual") 
+print(DIVIDER) 
+result = pd.DataFrame({'Actual': y_test.values, 'Predicted': y_pred}) 
+print(result.head(15).to_string(index=False)) 
+cm = confusion_matrix(y_test, y_pred) 
+print(f"\n{DIVIDER}") 
+print("  STEP 7 — Confusion Matrix") 
+print(DIVIDER) 
+print(f"\n  Confusion Matrix Layout:") 
+print(f"             
+Predicted 0   Predicted 1") 
+print(f"  Actual 0 :     {cm[0,0]}             
+{cm[0,1]}") 
+print(f"  Actual 1 :     {cm[1,0]}             
+{cm[1,1]}") 
+print(f"\n  TN={cm[0,0]}  FP={cm[0,1]}  FN={cm[1,0]}  TP={cm[1,1]}") 
+TP = cm[1, 1] 
+TN = cm[0, 0] 
+FP = cm[0, 1] 
+FN = cm[1, 0] 
+accuracy   = (TP + TN) / (TP + TN + FP + FN) 
+error_rate = (FP + FN) / (TP + TN + FP + FN) 
+precision  = TP / (TP + FP) if (TP + FP) != 0 else 0 
+recall = TP / (TP + FN) if (TP + FN) != 0 else 0 
+f1 = 2 * precision * recall / (precision + recall) if (precision + recall) != 0 else 0 
+print(f"\n{DIVIDER}") 
+print("  STEP 8 — Performance Metrics") 
+print(DIVIDER) 
+print(f"  Accuracy   : {accuracy:.4f}  ({accuracy*100:.2f}%)") 
+print(f"  Error Rate : {error_rate:.4f}  ({error_rate*100:.2f}%)") 
+print(f"  Precision  : {precision:.4f}") 
+print(f"  Recall     : {recall:.4f}") 
+print(f"  F1 Score   : {f1:.4f}") 
+print(f"\n{DIVIDER}") 
+print("  STEP 9 — Full Classification Report (sklearn)") 
+print(DIVIDER) 
+print(classification_report(y_test, y_pred, target_names=['Not Purchased', 'Purchased'])) 
+print(f"\n{'='*60}") 
+print("  PRACTICAL 5 COMPLETE") 
+print(f"{'='*60}\n")
+
+
+
+
+
+
+
+
+import pandas as pd 
+import numpy as np 
+from sklearn.model_selection import train_test_split 
+from sklearn.naive_bayes import GaussianNB 
+from sklearn.metrics import confusion_matrix, classification_report, accuracy_score 
+DIVIDER = "=" * 60 
+from sklearn.datasets import load_iris 
+iris_bunch = load_iris(as_frame=True) 
+df = iris_bunch.frame 
+df['species'] = df['target'].map({0: 'Iris-setosa', 1: 'Iris-versicolor', 2: 'Iris-virginica'}) 
+df = df.drop('target', axis=1) 
+print(f"\n{DIVIDER}") 
+print("  STEP 1 — Iris Dataset Loaded") 
+print(f"  Shape: {df.shape}") 
+print(DIVIDER) 
+print(df.head(10).to_string(index=False)) 
+print(f"\n{DIVIDER}") 
+print("  STEP 2 — Dataset Info") 
+print(DIVIDER) 
+print(df.dtypes) 
+print(f"\n  Species distribution:\n{df['species'].value_counts()}") 
+print(f"\n{DIVIDER}") 
+print("  STEP 3 — Statistical Summary") 
+print(DIVIDER) 
+print(df.describe().round(3)) 
+X = df.drop('species', axis=1) 
+y = df['species'] 
+print(f"\n{DIVIDER}") 
+print("  STEP 4 — Features (X) and Target (y)") 
+print(DIVIDER) 
+print(f"  Features: {list(X.columns)}") 
+print(f"  Target  : species") 
+X_train, X_test, y_train, y_test = train_test_split( 
+X, y, test_size=0.3, random_state=42 
+) 
+print(f"\n{DIVIDER}") 
+print("  STEP 5 — Train-Test Split (70% train, 30% test)") 
+print(DIVIDER) 
+print(f"  Training samples: {X_train.shape[0]}") 
+print(f"  Testing  samples: {X_test.shape[0]}") 
+model = GaussianNB() 
+model.fit(X_train, y_train) 
+print(f"\n{DIVIDER}") 
+print("  STEP 6 — Gaussian Naïve Bayes Model Trained!") 
+print(DIVIDER) 
+print(f"  Classes learned: {list(model.classes_)}") 
+y_pred = model.predict(X_test) 
+print(f"\n{DIVIDER}") 
+print("  STEP 7 — Sample Predictions vs Actual") 
+print(DIVIDER) 
+result = pd.DataFrame({'Actual': y_test.values, 'Predicted': y_pred}) 
+print(result.head(15).to_string(index=False)) 
+cm = confusion_matrix(y_test, y_pred) 
+classes = ['Setosa', 'Versicolor', 'Virginica'] 
+print(f"\n{DIVIDER}") 
+print("  STEP 8 — Confusion Matrix (3x3 — Multiclass)") 
+print(DIVIDER) 
+cm_df = pd.DataFrame(cm, 
+index  =[f'Actual {c}' for c in classes], 
+columns=[f'Pred {c}'   for c in classes]) 
+print(cm_df) 
+print(f"\n{DIVIDER}") 
+print("  STEP 9 — Performance Metrics per Class") 
+print(DIVIDER) 
+for i, cls in enumerate(classes): 
+TP = cm[i, i] 
+FP = cm[:, i].sum() - TP 
+FN = cm[i, :].sum() - TP 
+TN = cm.sum() - TP - FP - FN 
+accuracy  = (TP + TN) / cm.sum() 
+precision = TP / (TP + FP) if (TP + FP) != 0 else 0 
+recall    = TP / (TP + FN) if (TP + FN) != 0 else 0 
+f1 = 2 * precision * recall / (precision + recall) if (precision + recall) != 0 else 0 
+print(f"\n  [{cls}]") 
+print(f"    TP={TP}  FP={FP}  FN={FN}  TN={TN}") 
+print(f"    Accuracy  : {accuracy:.4f}") 
+print(f"    Precision : {precision:.4f}") 
+print(f"    Recall    : {recall:.4f}") 
+print(f"    F1 Score  : {f1:.4f}") 
+overall = accuracy_score(y_test, y_pred) 
+print(f"\n{DIVIDER}") 
+print("  STEP 10 — Overall Accuracy & Full Report") 
+print(DIVIDER) 
+print(f"  Overall Accuracy: {overall:.4f} ({overall*100:.2f}%)") 
+print(f"\n{classification_report(y_test, y_pred)}") 
+print(f"\n{'='*60}") 
+print("  PRACTICAL 6 COMPLETE") 
+print(f"{'='*60}\n")
